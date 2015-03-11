@@ -215,23 +215,18 @@ public class FtpRequest extends Thread {
      */
     public void processLIST() throws IOException {
         // create a file that is really a directory
-        File aDirectory = new File(this.directory);
         //get all the files from a directory
-        File[] fList = aDirectory.listFiles();
         OutputStream dout= this.connData.getOutputStream();
-String s = null;
+        String s = null;
         sendMessageClient("150 File status okay; about to open data connection.");
+        
         /* We tell the client where we are. It's always important to know where we are ! */
         
-        
-        Process p= Runtime.getRuntime().exec("ls -al");
-        
+        Process p= Runtime.getRuntime().exec("ls -al " + this.directory);
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
- 
         BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
  
         // read the output from the command
-        System.out.println("Here is the standard output of the command:\n");
         while ((s = stdInput.readLine()) != null) {
             this.msg += s + "\r\n";
         }
