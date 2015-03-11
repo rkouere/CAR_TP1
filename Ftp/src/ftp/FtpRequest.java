@@ -219,13 +219,23 @@ public class FtpRequest extends Thread {
         //get all the files from a directory
         File[] fList = aDirectory.listFiles();
         OutputStream dout= this.connData.getOutputStream();
-
+String s = null;
         sendMessageClient("150 File status okay; about to open data connection.");
         /* We tell the client where we are. It's always important to know where we are ! */
-        this.msg += ". Current dir = " + this.directory + "\r\n";
-        for (File file : fList){
-            this.msg += file.getName() + "\r\n";
+        
+        
+        Process p= Runtime.getRuntime().exec("ls -al");
+        
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
+ 
+        BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+ 
+        // read the output from the command
+        System.out.println("Here is the standard output of the command:\n");
+        while ((s = stdInput.readLine()) != null) {
+            this.msg += s + "\r\n";
         }
+ 
         byte[] msgToSend=msg.getBytes();
         dout.write(msgToSend,0,msgToSend.length);
 
