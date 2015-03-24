@@ -76,7 +76,7 @@ public class FtpRequest extends Thread {
     public void init(Socket conn, Hashtable<String, String> users) {
         this.connServer = conn;
         this.users = users;
-        this.directory = System.getProperty("user.dir");
+        this.directory = System.getProperty("user.dir") + "/src/ftpRoot";
         /* we use this as the default value, just to be on the safe side ! */
         this.anonymousLogin = true;
     }
@@ -122,7 +122,10 @@ public class FtpRequest extends Thread {
                     break;
                  case "STOR": // connection passive
                     processSTOR(this.split[1]);
-                    break;                   
+                    break;
+                case "DELE": // connection passive
+                    processDEL(this.split[1]);
+                    break;         
 //                case "EPRT": // connection active -> server doit stoquer information connection active. Repond OK. Il faut ouvrir connection
 //                    processPASS(this.split[1]);
 //                    this.loggedIn = false;
@@ -242,6 +245,38 @@ public class FtpRequest extends Thread {
         /* afficher un message de succès */
         sendMessageClient("226 Closing data connection file transfer successful");
     }
+    
+    private Boolean processDEL(String msg) {
+        if(this.anonymousLogin == true) {
+            sendMessageClient("532 Need account for deleting files.");
+            return false;
+        }
+        else {
+            /* we check that the file does not exists */
+            System.out.println(this.directory + "/" + msg);
+            File file = new File(this.directory + "/" + msg);
+            System.out.println(file.getAbsolutePath());
+            if(file.exists()) {
+                if(file.delete()) {
+                    sendMessageClient("250 Requested file action okay, completed.");
+                    return true;
+    		} else{
+                    sendMessageClient("450 There was a problem deleting the file from the server. God knows what happened !");
+                    return false;
+    		}
+            }
+            /* sinon on la cree */ 
+            else {
+                sendMessageClient("450 Requested file action not taken. The file you are trying to delete does not exists.");
+                return false;
+                /* afficher un message de succès */
+                //sendMessageClient("226 Transfer complete !");
+                
+            }
+        }
+    }
+    
+    
     /**
      * Store a file on the serveur.
      * If the user is in anonymous mode, he or she is forbidden to use this method.
@@ -451,6 +486,7 @@ public class FtpRequest extends Thread {
         }
     }
     
+
     /*
     ------------------TOOLS------------------
     */
@@ -525,6 +561,8 @@ public class FtpRequest extends Thread {
     private void processTYPEI() {
         sendMessageClient("200 Command OK");
     }
+
+  
  
 }
 
